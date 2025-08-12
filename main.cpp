@@ -1,37 +1,35 @@
-#include <iostream>
-#include <assert.h>
-#include "ColorUtils.h"
 #include "Manual.h"
+#include "ColorUtils.h"
+#include "Constants.h"
+#include <iomanip> // for setw
+#include <sstream> // for ostringstream
 
-void testNumberToPair(int pairNumber,
-                      TelCoColorCoder::MajorColor expectedMajor,
-                      TelCoColorCoder::MinorColor expectedMinor)
+namespace TelCoColorCoder
 {
-    TelCoColorCoder::ColorPair colorPair =
-        TelCoColorCoder::GetColorFromPairNumber(pairNumber);
-    std::cout << "Got pair " << colorPair.ToString() << std::endl;
-    assert(colorPair.getMajor() == expectedMajor);
-    assert(colorPair.getMinor() == expectedMinor);
-}
+    std::string GenerateReferenceManual() {
+        std::ostringstream manual;
+        int totalPairs = numberOfMajorColors * numberOfMinorColors;
 
-void testPairToNumber(TelCoColorCoder::MajorColor major,
-                      TelCoColorCoder::MinorColor minor,
-                      int expectedPairNumber)
-{
-    int pairNumber = TelCoColorCoder::GetPairNumberFromColor(major, minor);
-    std::cout << "Got pair number " << pairNumber << std::endl;
-    assert(pairNumber == expectedPairNumber);
-}
+        // Header
+        manual << std::left << std::setw(12) << "Pair Number"
+               << std::setw(15) << "Major Color"
+               << std::setw(15) << "Minor Color" << "\n";
+        manual << std::string(42, '-') << "\n";
 
-int main() {
-    testNumberToPair(4, TelCoColorCoder::WHITE, TelCoColorCoder::BROWN);
-    testNumberToPair(5, TelCoColorCoder::WHITE, TelCoColorCoder::SLATE);
+        // Group by major color
+        for (int major = 0; major < numberOfMajorColors; ++major) {
+            manual << "\n=== " << MajorColorNames[major] << " Group ===\n";
+            for (int minor = 0; minor < numberOfMinorColors; ++minor) {
+                int pairNumber = GetPairNumberFromColor(
+                    static_cast<MajorColor>(major),
+                    static_cast<MinorColor>(minor)
+                );
+                manual << std::left << std::setw(12) << pairNumber
+                       << std::setw(15) << MajorColorNames[major]
+                       << std::setw(15) << MinorColorNames[minor] << "\n";
+            }
+        }
 
-    testPairToNumber(TelCoColorCoder::BLACK, TelCoColorCoder::ORANGE, 12);
-    testPairToNumber(TelCoColorCoder::VIOLET, TelCoColorCoder::SLATE, 25);
-
-    std::cout << "\nReference Manual:\n";
-    std::cout << TelCoColorCoder::GenerateReferenceManual();
-
-    return 0;
+        return manual.str();
+    }
 }
